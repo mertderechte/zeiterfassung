@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <!-- Mobile-Friendly Viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zeiterfassung – Prototyp</title>
+  <style>
+    /* Grundlegende Formatierung */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 10px;
+      background-color: #f9f9f9;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    h1, h2, h3 {
+      margin: 0.5em 0;
+    }
+    /* Formularelemente */
+    input, select, button {
+      margin: 5px 0;
+      padding: 10px;
+      font-size: 1.1em;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .big-input {
+      font-size: 1.3em;
+      padding: 12px;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    .flex-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .flex-row > * {
+      flex: 1;
+    }
+    /* Buttons */
+    .button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 12px;
+      font-size: 1.1em;
+    }
+    .button:hover {
+      background-color: #0056b3;
+    }
+    .pdf-button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 12px 20px;
+      margin-top: 15px;
+      font-size: 1.1em;
+      display: inline-block;
+    }
+    .pdf-button:hover {
+      background-color: #218838;
+    }
+    /* Tabelle & Container für responsives Scrollen */
+    .table-container {
+      overflow-x: auto;
+      width: 100%;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+      min-width: 600px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    /* Löschspalte (nun als erste Spalte) */
+    .delete-cell {
+      width: 40px;
+    }
+    /* Farben für Wochenenden und Feiertage */
+    .weekend {
+      background-color: #ffebcc !important;
+    }
+    .holiday {
+      background-color: #ffcccc !important;
+    }
+    /* Header: Flexibles Layout */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .language-selector {
+      text-align: right;
+      flex: 1;
+    }
+    h1 {
+      flex: 2;
+      text-align: center;
+    }
+    /* Hilfe-/Anleitung-Bereich */
+    .instructions {
+      background-color: #eef;
+      border: 1px solid #ccd;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .instructions h2 {
+      margin-top: 0;
+    }
+    .instructions ol {
+      margin-left: 20px;
+    }
+    .help-button {
+      background-color: #ffc107;
+      color: #333;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 8px 12px;
+      font-size: 1em;
+      margin-bottom: 20px;
+    }
+    .help-button:hover {
+      background-color: #e0a800;
+    }
+    /* Neuer Button: Wochenenden automatisch eintragen */
+    .weekend-button {
+      background-color: #17a2b8;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 8px 12px;
+      font-size: 1em;
+      margin-bottom: 20px;
+    }
+    .weekend-button:hover {
+      background-color: #138496;
+    }
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 4px;
+      font-size: 1em;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .toast.show {
+      opacity: 1;
+    }
+    /* Mobile-Optimierung */
+    @media (max-width: 600px) {
+      .header {
+        flex-direction: column;
+        align-items: center;
+      }
+      .language-selector {
+        text-align: center;
+        width: 100%;
+        margin-bottom: 10px;
+      }
+      h1 {
+        text-align: center;
+      }
+      .big-input, select, .button, .pdf-button, .help-button, .weekend-button {
+        font-size: 1.3em;
+        padding: 12px;
+      }
+      th, td {
+        font-size: 1em;
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header: Sprachauswahl und Überschrift -->
+    <div class="header">
+      <div class="language-selector">
+        <label for="languageSelect">Sprache / Dil:</label>
+        <select id="languageSelect">
+          <option value="de">Deutsch</option>
+          <option value="tr" selected>Türkçe</option>
+        </select>
+      </div>
+      <h1 id="title">Zeiterfassung für einen Monat</h1>
+    </div>
+    
+    <!-- Hilfe/Anleitung Button mit Pfeil -->
+    <button id="helpButton" class="help-button"></button>
+    
+    <!-- Anleitung (wird per JavaScript gesetzt) -->
+    <div id="instructions" class="instructions"></div>
+    
+    <!-- Namenseingabe -->
+    <div class="input-group">
+      <label id="nameLabel" for="fullName">Name (Vor- und Nachname):</label>
+      <input type="text" id="fullName" placeholder="Max Mustermann" required>
+    </div>
+    
+    <!-- Auswahl von Monat und Jahr -->
+    <div class="input-group">
+      <label id="monthYearLabel">Monat und Jahr wählen:</label>
+      <div class="flex-row">
+        <select id="monthSelect">
+          <option value="01" selected>Januar</option>
+          <option value="02">Februar</option>
+          <option value="03">März</option>
+          <option value="04">April</option>
+          <option value="05">Mai</option>
+          <option value="06">Juni</option>
+          <option value="07">Juli</option>
+          <option value="08">August</option>
+          <option value="09">September</option>
+          <option value="10">Oktober</option>
+          <option value="11">November</option>
+          <option value="12">Dezember</option>
+        </select>
+        <select id="yearSelect">
+          <!-- Jahre werden via JavaScript befüllt (ab 2025) -->
+        </select>
+      </div>
+    </div>
+    
+    <!-- Formular zum Hinzufügen eines Arbeitseintrags -->
+    <h2 id="formTitle">Arbeitszeit hinzufügen</h2>
+    <form id="timeForm">
+      <div class="input-group">
+        <label id="dateLabel" for="date">Datum:</label>
+        <!-- Standard-Datum: 1. Januar 2025 -->
+        <input type="date" id="date" name="date" required class="big-input" value="2025-01-01">
+      </div>
+      <div class="input-group">
+        <label id="startLabel" for="start">Start Uhrzeit:</label>
+        <input type="time" id="start" name="start" required value="10:00" step="300" class="big-input">
+      </div>
+      <div class="input-group">
+        <label id="endLabel" for="end">End Uhrzeit:</label>
+        <input type="time" id="end" name="end" required value="14:00" step="300" class="big-input">
+      </div>
+      <button type="submit" class="button" id="addButton">Hinzufügen</button>
+    </form>
+    
+    <!-- Button: Wochenenden automatisch eintragen -->
+    <button id="weekendButton" class="weekend-button"></button>
+    
+    <!-- Tabelle in einem responsiven Container -->
+    <h2 id="tableTitle">Gespeicherte Arbeitszeiten</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th class="delete-cell"></th>
+            <th id="thDate">Datum</th>
+            <th id="thDay">Wochentag</th>
+            <th id="thStart">Start Uhrzeit</th>
+            <th id="thEnd">End Uhrzeit</th>
+            <th id="thDuration">Dauer (Std.)</th>
+          </tr>
+        </thead>
+        <tbody id="sessionsTable">
+          <!-- Einträge werden dynamisch hinzugefügt -->
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Button zur PDF-Erstellung -->
+    <button id="pdfButton" class="pdf-button"></button>
+  </div>
+  
+  <!-- Toast Container (wird dynamisch erzeugt) -->
+  <!-- (Kein extra Container benötigt, da Toasts direkt im Body erzeugt werden) -->
+  
+  <!-- jsPDF und jsPDF-AutoTable -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  
+  <script>
+    // Funktion: Toast Notification anzeigen (5 Sekunden)
+    function showToast(message) {
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      toast.innerText = message;
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.classList.add("show"); }, 100);
+      setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => { document.body.removeChild(toast); }, 500);
+      }, 5000); // 5 Sekunden
+    }
+    
+    // Übersetzungsobjekte für UI-Texte
+    const translations = {
+      de: {
+        title: "Zeiterfassung für einen Monat",
+        nameLabel: "Name (Vor- und Nachname):",
+        monthYearLabel: "Monat und Jahr wählen:",
+        formTitle: "Arbeitszeit hinzufügen",
+        dateLabel: "Datum:",
+        startLabel: "Start Uhrzeit:",
+        endLabel: "End Uhrzeit:",
+        addButton: "Hinzufügen",
+        tableTitle: "Gespeicherte Arbeitszeiten",
+        thDate: "Datum",
+        thDay: "Wochentag",
+        thStart: "Start Uhrzeit",
+        thEnd: "End Uhrzeit",
+        thDuration: "Dauer (Std.)",
+        pdfButton: "PDF erstellen",
+        dateError: "Das ausgewählte Datum passt nicht zum aktuell gewählten Monat. Bitte wählen Sie ein korrektes Datum!",
+        timeError: "Die Endzeit muss nach der Startzeit liegen. Bitte überprüfen Sie Ihre Eingabe!",
+        monthWarning: "Bitte verwenden Sie nur den aktuell ausgewählten Monat! Alle Einträge müssen im gleichen Monat liegen.",
+        nameWarning: "Bitte geben Sie Ihren Namen ein, bevor Sie fortfahren!",
+        datePlaceholder: "Datum auswählen",
+        timePlaceholder: "Uhrzeit auswählen",
+        dateTitle: "Klicken Sie auf das Datumfeld, um den Kalender zu öffnen",
+        timeTitle: "Klicken Sie auf das Zeitfeld, um die Uhrzeitauswahl zu öffnen",
+        helpButton: "Hilfe/Anleitung ▼",
+        weekendButton: "Wochenenden eintragen"
+      },
+      tr: {
+        title: "Bir Ay İçin Zaman Kaydı",
+        nameLabel: "Ad Soyad:",
+        monthYearLabel: "Ay ve Yıl Seçiniz:",
+        formTitle: "Çalışma Zamanı Ekle",
+        dateLabel: "Tarih:",
+        startLabel: "Başlangıç Saati:",
+        endLabel: "Bitiş Saati:",
+        addButton: "Ekle",
+        tableTitle: "Kaydedilen Çalışma Zamanları",
+        thDate: "Tarih",
+        thDay: "Gün",
+        thStart: "Derse Başlama Saati",
+        thEnd: "Ders Bitiş Saati",
+        thDuration: "Toplam Saati",
+        pdfButton: "PDF Oluştur",
+        dateError: "Seçilen tarih, seçilen ayla eşleşmiyor. Lütfen doğru tarihi seçin!",
+        timeError: "Bitiş saati, başlangıç saatinden sonra olmalıdır. Lütfen kontrol ediniz!",
+        monthWarning: "Lütfen sadece seçili ayı kullanın! Tüm kayıtlar aynı ayda olmalıdır.",
+        nameWarning: "Devam etmeden önce lütfen adınızı girin!",
+        datePlaceholder: "Tarih seçiniz",
+        timePlaceholder: "Saat seçiniz",
+        dateTitle: "Takvimi açmak için tarih alanına tıklayın",
+        timeTitle: "Saat seçimini açmak için saat alanına tıklayın",
+        helpButton: "Yardım/Kılavuz ▼",
+        weekendButton: "Haftasonlarını Ekle"
+      }
+    };
+    
+    // Sprachspezifische, nummerierte Anleitungen
+    const instructionsText = {
+      de: `<h2>Anleitung</h2>
+           <ol>
+             <li>Geben Sie Ihren Namen ein.</li>
+             <li>Wählen Sie Monat & Jahr.</li>
+             <li>Wählen Sie einen Tag im Kalender aus.</li>
+             <li>Stellen Sie Start- & Endzeit ein.</li>
+             <li>Klicken Sie auf "Hinzufügen".</li>
+             <li>Bei Bedarf: "Wochenenden eintragen".</li>
+             <li>PDF erstellen und an egitim@gmail.com senden.</li>
+           </ol>`,
+      tr: `<h2>Kılavuz</h2>
+           <ol>
+             <li>Adınızı girin.</li>
+             <li>Ay & Yıl seçin.</li>
+             <li>Takvimden bir gün seçin.</li>
+             <li>Başlangıç & Bitiş saatlerini ayarlayın.</li>
+             <li>"Ekle"ye tıklayın.</li>
+             <li>Gerekirse: "Haftasonlarını Ekle"ye tıklayın.</li>
+             <li>PDF oluşturun ve egitim@gmail.com'a gönderin.</li>
+           </ol>`
+    };
+    
+    // Globales Array für alle Einträge
+    let sessions = [];
+    
+    // Funktion: Speicherung in SessionStorage (beim Schließen des Tabs verloren)
+    function updateStorage() {
+      sessionStorage.setItem("sessions", JSON.stringify(sessions));
+    }
+    
+    // Funktion: Tabelle neu rendern (sortiert nach Datum & Startzeit)
+    function renderSessions() {
+      sessions.sort((a, b) => new Date(a.date + 'T' + a.start) - new Date(b.date + 'T' + b.start));
+      const tableBody = document.getElementById("sessionsTable");
+      tableBody.innerHTML = "";
+      let totalTime = 0;
+      const holidays = ["01-01", "12-25", "12-26"];
+      
+      sessions.forEach((session, index) => {
+        const tr = document.createElement("tr");
+        const dateParts = session.date.split("-");
+        const formattedDate = dateParts[2] + "." + dateParts[1] + "." + dateParts[0].slice(-2);
+        
+        tr.innerHTML = `
+          <td class="delete-cell"><button onclick="deleteSession(${index})" style="background:none;border:none;cursor:pointer;">🗑️</button></td>
+          <td>${formattedDate}</td>
+          <td>${session.dayName}</td>
+          <td>${session.start}</td>
+          <td>${session.end}</td>
+          <td>${session.duration.toFixed(2).replace('.', ',')}</td>
+        `;
+        totalTime += session.duration;
+        
+        const d = new Date(session.date);
+        if(d.getDay() === 0 || d.getDay() === 6) {
+          tr.classList.add("weekend");
+        }
+        const monthDay = dateParts[1] + "-" + dateParts[2];
+        if(holidays.includes(monthDay)) {
+          tr.classList.add("holiday");
+        }
+        tableBody.appendChild(tr);
+      });
+    }
+    
+    // Funktion: Eintrag löschen
+    function deleteSession(index) {
+      sessions.splice(index, 1);
+      updateStorage();
+      renderSessions();
+    }
+    
+    // Beim Laden: Einträge aus SessionStorage laden
+    window.addEventListener("load", () => {
+      const stored = sessionStorage.getItem("sessions");
+      if(stored) {
+        sessions = JSON.parse(stored);
+        renderSessions();
+      }
+    });
+    
+    // Funktion: Anleitung (spracheabhängig) aktualisieren
+    function updateInstructions(lang) {
+      const instrDiv = document.getElementById("instructions");
+      if(instrDiv.style.display === "block") {
+        instrDiv.innerHTML = instructionsText[lang];
+      }
+    }
+    
+    // Funktion: UI-Texte und Anleitung anhand der Sprache aktualisieren
+    function updateLanguage(lang) {
+      document.getElementById("title").textContent = translations[lang].title;
+      document.getElementById("nameLabel").textContent = translations[lang].nameLabel;
+      document.getElementById("monthYearLabel").textContent = translations[lang].monthYearLabel;
+      document.getElementById("formTitle").textContent = translations[lang].formTitle;
+      document.getElementById("dateLabel").textContent = translations[lang].dateLabel;
+      document.getElementById("startLabel").textContent = translations[lang].startLabel;
+      document.getElementById("endLabel").textContent = translations[lang].endLabel;
+      document.getElementById("addButton").textContent = translations[lang].addButton;
+      document.getElementById("tableTitle").textContent = translations[lang].tableTitle;
+      document.getElementById("thDate").textContent = translations[lang].thDate;
+      document.getElementById("thDay").textContent = translations[lang].thDay;
+      document.getElementById("thStart").textContent = translations[lang].thStart;
+      document.getElementById("thEnd").textContent = translations[lang].thEnd;
+      document.getElementById("thDuration").textContent = translations[lang].thDuration;
+      document.getElementById("pdfButton").textContent = translations[lang].pdfButton;
+      
+      document.getElementById("date").placeholder = translations[lang].datePlaceholder;
+      document.getElementById("date").title = translations[lang].dateTitle;
+      document.getElementById("start").placeholder = translations[lang].timePlaceholder;
+      document.getElementById("start").title = translations[lang].timeTitle;
+      document.getElementById("end").placeholder = translations[lang].timePlaceholder;
+      document.getElementById("end").title = translations[lang].timeTitle;
+      
+      document.getElementById("helpButton").textContent = translations[lang].helpButton;
+      document.getElementById("weekendButton").textContent = translations[lang].weekendButton;
+      
+      updateInstructions(lang);
+    }
+    
+    document.getElementById("languageSelect").addEventListener("change", function() {
+      updateLanguage(this.value);
+    });
+    
+    // Standardmäßig Türkisch initialisieren
+    updateLanguage("tr");
+    
+    // Jahr-Dropdown befüllen (ab 2025)
+    const yearSelect = document.getElementById("yearSelect");
+    const currentYearVal = new Date().getFullYear();
+    const startYearVal = 2025;
+    const endYearVal = currentYearVal < startYearVal ? startYearVal + 1 : currentYearVal + 1;
+    for (let y = startYearVal; y <= endYearVal; y++) {
+      const option = document.createElement("option");
+      option.value = y.toString();
+      option.textContent = y.toString();
+      if (y === startYearVal) option.selected = true;
+      yearSelect.appendChild(option);
+    }
+    
+    // Hilfsarrays für Monats- und Wochentagsnamen
+    const monthNames = {
+      de: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+      tr: ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
+    };
+    const weekdayNames = {
+      de: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+      tr: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa']
+    };
+    
+    // Funktion: Zulässigen Datumsbereich anhand von Monat und Jahr festlegen
+    function updateDateInputRange() {
+      const selectedYear = document.getElementById("yearSelect").value;
+      const selectedMonth = document.getElementById("monthSelect").value;
+      const dateInput = document.getElementById("date");
+      const lastDay = new Date(selectedYear, parseInt(selectedMonth), 0).getDate();
+      dateInput.min = `${selectedYear}-${selectedMonth}-01`;
+      dateInput.max = `${selectedYear}-${selectedMonth}-${lastDay.toString().padStart(2, '0')}`;
+      if (dateInput.value) {
+        const [yearFromDate, monthFromDate] = dateInput.value.split('-');
+        if (yearFromDate !== selectedYear || monthFromDate !== selectedMonth) {
+          dateInput.value = "";
+        }
+      }
+    }
+    
+    document.getElementById("monthSelect").addEventListener("change", updateDateInputRange);
+    document.getElementById("yearSelect").addEventListener("change", updateDateInputRange);
+    
+    // Zeitfelder: 1 Sekunde warten, bevor der Fokus entfernt wird.
+    document.getElementById("start").addEventListener("change", function() {
+      setTimeout(() => { this.blur(); }, 1000);
+    });
+    document.getElementById("end").addEventListener("change", function() {
+      setTimeout(() => { this.blur(); }, 1000);
+    });
+    
+    // Falls showPicker() unterstützt wird, öffnet ein Klick auf die Felder den nativen Picker.
+    document.getElementById("date").addEventListener("click", function() {
+      if (this.showPicker) this.showPicker();
+    });
+    document.getElementById("start").addEventListener("click", function() {
+      if (this.showPicker) this.showPicker();
+    });
+    document.getElementById("end").addEventListener("click", function() {
+      if (this.showPicker) this.showPicker();
+    });
+    
+    // Hilfe/Anleitung Button: Ein-/Ausblenden der Anleitung
+    document.getElementById("helpButton").addEventListener("click", function() {
+      const instrDiv = document.getElementById("instructions");
+      if (instrDiv.style.display === "none" || instrDiv.style.display === "") {
+        instrDiv.style.display = "block";
+        const currentLang = document.getElementById("languageSelect").value;
+        instrDiv.innerHTML = instructionsText[currentLang];
+      } else {
+        instrDiv.style.display = "none";
+      }
+    });
+    
+    // Button: Wochenenden automatisch eintragen
+    document.getElementById("weekendButton").addEventListener("click", function() {
+      const selectedYear = document.getElementById("yearSelect").value;
+      const selectedMonth = document.getElementById("monthSelect").value;
+      const lastDay = new Date(selectedYear, parseInt(selectedMonth), 0).getDate();
+      for (let day = 1; day <= lastDay; day++) {
+        const dayStr = day.toString().padStart(2, '0');
+        const dateStr = `${selectedYear}-${selectedMonth}-${dayStr}`;
+        const d = new Date(dateStr);
+        const dayOfWeek = d.getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+          const exists = sessions.some(session => session.date === dateStr);
+          if (!exists) {
+            const session = {
+              date: dateStr,
+              start: "10:00",
+              end: "14:00",
+              duration: 4,
+              dayName: weekdayNames[document.getElementById("languageSelect").value][dayOfWeek]
+            };
+            sessions.push(session);
+          }
+        }
+      }
+      updateStorage();
+      renderSessions();
+    });
+    
+    // Formular: Hinzufügen eines neuen Eintrags
+    document.getElementById('timeForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const selectedLang = document.getElementById("languageSelect").value;
+      const fullName = document.getElementById("fullName").value.trim();
+      if (fullName === "") {
+        showToast(translations[selectedLang].nameWarning);
+        return;
+      }
+      
+      const selectedMonth = document.getElementById("monthSelect").value;
+      const selectedYear = document.getElementById("yearSelect").value;
+      const dateInput = document.getElementById('date').value;
+      const startInput = document.getElementById('start').value;
+      const endInput = document.getElementById('end').value;
+      
+      const [yearFromDate, monthFromDate] = dateInput.split('-');
+      if (yearFromDate !== selectedYear || monthFromDate !== selectedMonth) {
+        showToast(translations[selectedLang].dateError);
+        return;
+      }
+      
+      if (sessions.length > 0) {
+        const [firstYear, firstMonth] = sessions[0].date.split('-');
+        if (firstYear !== yearFromDate || firstMonth !== monthFromDate) {
+          showToast(translations[selectedLang].monthWarning);
+          return;
+        }
+      }
+      
+      const startTime = new Date(dateInput + 'T' + startInput);
+      const endTime = new Date(dateInput + 'T' + endInput);
+      let duration = (endTime - startTime) / (1000 * 60 * 60);
+      if (duration < 0) {
+        showToast(translations[selectedLang].timeError);
+        return;
+      }
+      duration = parseFloat(duration.toFixed(2));
+      
+      const d = new Date(dateInput);
+      const dayIndex = d.getDay();
+      const dayName = weekdayNames[selectedLang][dayIndex];
+      
+      const session = {
+        date: dateInput,
+        start: startInput,
+        end: endInput,
+        duration: duration,
+        dayName: dayName
+      };
+      
+      sessions.push(session);
+      updateStorage();
+      renderSessions();
+      
+      document.getElementById('date').value = "";
+    });
+    
+    // PDF-Erstellung mit jsPDF und AutoTable – verbesserte Formatierung
+    document.getElementById('pdfButton').addEventListener('click', function() {
+      sessions.sort((a, b) => new Date(a.date + 'T' + a.start) - new Date(b.date + 'T' + b.start));
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const selectedLang = document.getElementById("languageSelect").value;
+      const fullName = document.getElementById("fullName").value.trim();
+      if (fullName === "") {
+        showToast(selectedLang === "tr" ? "Lütfen adınızı girin!" : "Bitte geben Sie Ihren Namen ein!");
+        return;
+      }
+      const selectedMonth = document.getElementById("monthSelect").value;
+      const selectedYear = document.getElementById("yearSelect").value;
+      const monthIndex = parseInt(selectedMonth, 10) - 1;
+      let monthName = (selectedLang === 'tr') ? monthNames.tr[monthIndex] : monthNames.de[monthIndex];
+      const yearSuffix = selectedYear.toString().slice();
+      
+      let headerLine1 = "", headerLine2 = "", headerLine3 = "", tableHeaders = [], totalLabel = "";
+      if(selectedLang === 'tr'){
+         headerLine1 = "Fellbach Egitim Merkezi - Egitmen Ayligi";
+         headerLine2 = "Isim Soyisim: " + fullName;
+         headerLine3 = "Ay: " + monthName + " " + yearSuffix;
+         tableHeaders = ["Tarih", "Gün", "Derse Başlama Saati", "Ders Bitiş Saati", "Toplam Saati"];
+         totalLabel = "Toplam Saat:";
+         const dejavuFont = 'BASE64_ENCODED_DEJAVUSANS'; // Platzhalter ersetzen
+         doc.addFileToVFS("DejaVuSans.ttf", dejavuFont);
+         doc.addFont("DejaVuSans.ttf", "DejaVuSans", "normal");
+         doc.setFont("DejaVuSans", "normal");
+      } else {
+         headerLine1 = "Fellbach Bildungszentrum - Dozentenmonat";
+         headerLine2 = "Name: " + fullName;
+         headerLine3 = "Monat: " + monthName + " " + yearSuffix;
+         tableHeaders = ["Datum", "Tag", "Unterrichtsbeginn", "Unterrichtsende", "Gesamtstunden"];
+         totalLabel = "Gesamtstunden:";
+         doc.setFont("helvetica", "normal");
+      }
+      
+      // Header
+      doc.setFontSize(16);
+      doc.text(headerLine1, 14, 20);
+      doc.setFontSize(12);
+      doc.text(headerLine2, 14, 28);
+      doc.text(headerLine3, 14, 36);
+      // Unterstreichung
+      doc.setLineWidth(0.5);
+      doc.line(14, 38, 196, 38);
+      
+      const data = [];
+      let totalTime = 0;
+      function formatDate(inputDate) {
+         const parts = inputDate.split('-');
+         return (parts.length === 3) ? parts[2] + "." + parts[1] + "." + parts[0].slice(-2) : inputDate;
+      }
+      sessions.forEach(session => {
+         let rowData = [];
+         rowData.push(formatDate(session.date));
+         rowData.push(session.dayName);
+         rowData.push(session.start);
+         rowData.push(session.end);
+         rowData.push(session.duration.toFixed(2).replace('.', ','));
+         totalTime += session.duration;
+         data.push(rowData);
+      });
+      
+      doc.autoTable({
+         startY: 42,
+         head: [tableHeaders],
+         body: data,
+         theme: 'striped',
+         styles: { fontSize: 10, cellPadding: 5, halign: 'center' },
+         headStyles: { fillColor: [0, 102, 204], textColor: 255, fontStyle: 'bold', halign: 'center' },
+         alternateRowStyles: { fillColor: [240, 240, 240] },
+         margin: { left: 14, right: 14 }
+      });
+      
+      const finalY = doc.lastAutoTable.finalY || 42;
+      // Gesamtsumme prominent darstellen
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text(`Gesamtstunden: ${totalTime.toFixed(2).replace('.', ',')}`, 14, finalY + 20);
+      
+      const fileName = `aylik_${monthName}_${yearSuffix}.pdf`;
+      doc.save(fileName);
+    });
+  </script>
+</body>
+</html>
