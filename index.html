@@ -685,7 +685,7 @@
       const selectedYear = document.getElementById("yearSelect").value;
       const monthIndex = parseInt(selectedMonth, 10) - 1;
       let monthName = (selectedLang === 'tr') ? monthNames.tr[monthIndex] : monthNames.de[monthIndex];
-      const yearSuffix = selectedYear.toString().slice(-2);
+      const yearSuffix = selectedYear.toString().slice();
       
       let headerLine1 = "", headerLine2 = "", headerLine3 = "", tableHeaders = [], totalLabel = "";
       if(selectedLang === 'tr'){
