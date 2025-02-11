@@ -682,14 +682,14 @@
       const selectedYear = document.getElementById("yearSelect").value;
       const monthIndex = parseInt(selectedMonth, 10) - 1;
       let monthName = (selectedLang === 'tr') ? monthNames.tr[monthIndex] : monthNames.de[monthIndex];
-      const yearSuffix = selectedYear.toString().slice(-2);
+      const yearSuffix = selectedYear.toString().slice();
       
       let headerLine1 = "", headerLine2 = "", headerLine3 = "", tableHeaders = [], totalLabel = "";
       if(selectedLang === 'tr'){
          headerLine1 = "Fellbach Egitim Merkezi - Egitmen Ayligi";
          headerLine2 = "Isim Soyisim: " + fullName;
          headerLine3 = "Ay: " + monthName + " " + yearSuffix;
-         tableHeaders = ["Tarih", "Gün", "Derse Başlama Saati", "Ders Bitiş Saati", "Toplam Saati"];
+         tableHeaders = ["Tarih", "Gün", "Derse Baslama Saati", "Ders Bitis Saati", "Toplam Saati"];
          totalLabel = "Toplam Saat:";
          const dejavuFont = 'BASE64_ENCODED_DEJAVUSANS'; // Platzhalter ersetzen
          doc.addFileToVFS("DejaVuSans.ttf", dejavuFont);
