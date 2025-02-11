@@ -74,7 +74,7 @@
     .pdf-button:hover {
       background-color: #218838;
     }
-    /* Tabelle & Container */
+    /* Tabelle & Container für responsives Scrollen */
     .table-container {
       overflow-x: auto;
       width: 100%;
@@ -93,7 +93,7 @@
     th {
       background-color: #f2f2f2;
     }
-    /* Spalte für den Lösch-Button (als erste Spalte) */
+    /* Löschspalte (nun als erste Spalte) */
     .delete-cell {
       width: 40px;
     }
@@ -162,7 +162,7 @@
     .weekend-button:hover {
       background-color: #138496;
     }
-    /* Toast Notification Styles */
+    /* Toast Notification */
     .toast {
       position: fixed;
       bottom: 20px;
@@ -301,12 +301,15 @@
     <button id="pdfButton" class="pdf-button"></button>
   </div>
   
+  <!-- Toast Container (wird dynamisch erzeugt) -->
+  <!-- (Kein extra Container benötigt, da Toasts direkt im Body erzeugt werden) -->
+  
   <!-- jsPDF und jsPDF-AutoTable -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   
   <script>
-    // Toast Notification Funktion (5 Sekunden Anzeige)
+    // Funktion: Toast Notification anzeigen (5 Sekunden)
     function showToast(message) {
       const toast = document.createElement("div");
       toast.className = "toast";
@@ -316,7 +319,7 @@
       setTimeout(() => {
         toast.classList.remove("show");
         setTimeout(() => { document.body.removeChild(toast); }, 500);
-      }, 5000);
+      }, 5000); // 5 Sekunden
     }
     
     // Übersetzungsobjekte für UI-Texte
@@ -377,26 +380,26 @@
       }
     };
     
-    // Numerierte, kurze Anleitungen
+    // Sprachspezifische, nummerierte Anleitungen
     const instructionsText = {
       de: `<h2>Anleitung</h2>
            <ol>
              <li>Geben Sie Ihren Namen ein.</li>
              <li>Wählen Sie Monat & Jahr.</li>
-             <li>Wählen Sie einen Tag aus.</li>
+             <li>Wählen Sie einen Tag im Kalender aus.</li>
              <li>Stellen Sie Start- & Endzeit ein.</li>
-             <li>Klicken Sie "Hinzufügen".</li>
-             <li>Klicken Sie bei Bedarf "Wochenenden eintragen".</li>
+             <li>Klicken Sie auf "Hinzufügen".</li>
+             <li>Bei Bedarf: "Wochenenden eintragen".</li>
              <li>PDF erstellen und an egitim@gmail.com senden.</li>
            </ol>`,
       tr: `<h2>Kılavuz</h2>
            <ol>
              <li>Adınızı girin.</li>
              <li>Ay & Yıl seçin.</li>
-             <li>Bir gün seçin.</li>
+             <li>Takvimden bir gün seçin.</li>
              <li>Başlangıç & Bitiş saatlerini ayarlayın.</li>
              <li>"Ekle"ye tıklayın.</li>
-             <li>Gerekirse "Haftasonlarını Ekle"ye tıklayın.</li>
+             <li>Gerekirse: "Haftasonlarını Ekle"ye tıklayın.</li>
              <li>PDF oluşturun ve egitim@gmail.com'a gönderin.</li>
            </ol>`
     };
@@ -666,7 +669,7 @@
       document.getElementById('date').value = "";
     });
     
-    // PDF-Erstellung mit jsPDF und AutoTable – verbesserte, zentrierte Header-Formatierung
+    // PDF-Erstellung mit jsPDF und AutoTable – verbesserte Formatierung
     document.getElementById('pdfButton').addEventListener('click', function() {
       sessions.sort((a, b) => new Date(a.date + 'T' + a.start) - new Date(b.date + 'T' + b.start));
       
@@ -682,7 +685,7 @@
       const selectedYear = document.getElementById("yearSelect").value;
       const monthIndex = parseInt(selectedMonth, 10) - 1;
       let monthName = (selectedLang === 'tr') ? monthNames.tr[monthIndex] : monthNames.de[monthIndex];
-      const yearSuffix = selectedYear.toString().slice();
+      const yearSuffix = selectedYear.toString().slice(-2);
       
       let headerLine1 = "", headerLine2 = "", headerLine3 = "", tableHeaders = [], totalLabel = "";
       if(selectedLang === 'tr'){
@@ -704,16 +707,15 @@
          doc.setFont("helvetica", "normal");
       }
       
-      // Header zentriert ausgeben
-      const pageWidth = doc.internal.pageSize.getWidth();
+      // Header
       doc.setFontSize(16);
-      doc.text(headerLine1, pageWidth / 2, 20, { align: 'center' });
+      doc.text(headerLine1, 14, 20);
       doc.setFontSize(12);
-      doc.text(headerLine2, pageWidth / 2, 28, { align: 'center' });
-      doc.text(headerLine3, pageWidth / 2, 36, { align: 'center' });
-      // Unterstreichung über die gesamte Breite
+      doc.text(headerLine2, 14, 28);
+      doc.text(headerLine3, 14, 36);
+      // Unterstreichung
       doc.setLineWidth(0.5);
-      doc.line(14, 38, pageWidth - 14, 38);
+      doc.line(14, 38, 196, 38);
       
       const data = [];
       let totalTime = 0;
@@ -744,10 +746,10 @@
       });
       
       const finalY = doc.lastAutoTable.finalY || 42;
-      // Gesamtsumme prominent und zentriert ausgeben
+      // Gesamtsumme prominent darstellen
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
-      doc.text(`Gesamtstunden: ${totalTime.toFixed(2).replace('.', ',')}`, pageWidth / 2, finalY + 20, { align: 'center' });
+      doc.text(`Gesamtstunden: ${totalTime.toFixed(2).replace('.', ',')}`, 14, finalY + 20);
       
       const fileName = `aylik_${monthName}_${yearSuffix}.pdf`;
       doc.save(fileName);
