@@ -694,10 +694,7 @@
          headerLine3 = "Ay: " + monthName + " " + yearSuffix;
          tableHeaders = ["Tarih", "Gün", "Derse Baslama Saati", "Ders Bitis Saati", "Toplam Saati"];
          totalLabel = "Toplam Saat:";
-         const dejavuFont = 'BASE64_ENCODED_DEJAVUSANS'; // Platzhalter ersetzen
-         doc.addFileToVFS("DejaVuSans.ttf", dejavuFont);
-         doc.addFont("DejaVuSans.ttf", "DejaVuSans", "normal");
-         doc.setFont("DejaVuSans", "normal");
+         doc.setFont("helvetica", "normal");
       } else {
          headerLine1 = "Fellbach Bildungszentrum - Dozentenmonat";
          headerLine2 = "Name: " + fullName;
